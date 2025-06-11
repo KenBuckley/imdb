@@ -1,5 +1,14 @@
 
 
+
+imdb API
+
+GET /movies
+GET /movies/id
+POST /movies
+
+
+
 The data files were downloaded from https://datasets.imdbws.com/. 
 Their description is here: https://www.imdb.com/interfaces/
 

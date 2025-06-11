@@ -1,3 +1,5 @@
+#used to quickly view database
+
 CREATE TABLE TABLE IF NOT EXISTS title_basics (
     tconst TEXT PRIMARY KEY,
     titleType TEXT,
