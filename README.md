@@ -23,6 +23,9 @@ unpack the datasets into tsv files, i.e.  '7z e  title.basics.tsv.gz'
 
 
 
-Edge cases:
+Edge cases in table title.basics.tsv:
 multiole titles:
 tt0000049	short	Boxing Match; or, Glove Contest	Boxing Match; or, Glove Contest	0	1896	\N	\N	Short,Sport
+
+some movies have no genre: (might substitute unknown -otherwise might not show when searching for genre=any)
+"tt0000502"	"movie"	"Bohemios"	"Bohemios"	false	1905		100	 [null]
