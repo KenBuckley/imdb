@@ -10,5 +10,8 @@ wheels/
 .venv
 
 
-#local roughwork directory
-roughwork
+#local directories not to be archived to git
+roughwork/
+data/*.tsv
+data/*.gz
+database/
