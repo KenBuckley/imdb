@@ -50,27 +50,56 @@ else
 fi
 
 
-
-
-
 echo "Initializing database schema..."
 #create tables movie and genre as per SqlAlchemy defs., if tables exist they will not be created
 python imdb/init_db.py
 
-#echo "Loading table movie"
-#psql "$DATABASE_URL" <<EOF
-#DO \$\$
-#BEGIN
-#    IF NOT EXISTS (SELECT 1 FROM public.movie LIMIT 1) THEN
-#        RAISE NOTICE 'Loading data...';
-#
-#
-#    ELSE
-#        RAISE NOTICE 'Data already exists. Skipping.';
-#    END IF;
-#END
-#\$\$;
-#EOF
+#ususally move these commands to a .sql file to run but this is another way to run
+psql "$DATABASE_URL" <<EOF
+DO \$\$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM public.movie LIMIT 1) THEN
+        RAISE NOTICE 'Loading movie data...';
+        INSERT INTO public.movie (
+            tconst,
+            titletype,
+            primarytitle,
+            originaltitle,
+            isadult,
+            startyear,
+            runtimeminutes
+        )
+        SELECT
+            tconst,
+            titletype,
+            primarytitle,
+            originaltitle,
+            isadult,
+            startyear,
+            runtimeminutes
+        FROM public.title_basics
+        where titletype = 'movie';
+
+    ELSE
+        RAISE NOTICE 'Table movie: data already exists. Skipping.';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM public.genre LIMIT 1) THEN
+        RAISE NOTICE 'Loading genre data...';
+        insert into public.genre(
+        tconst,
+        genre
+        )
+        select tconst,
+        unnest(string_to_array(genres, ',')) AS genre
+        from public.title_basics
+        where titletype='movie'
+        and genres is not null;
+    ELSE
+        RAISE NOTICE 'Table genre: data already exists. Skipping.';
+    END IF;
+END
+\$\$;
+EOF
 
 
 
