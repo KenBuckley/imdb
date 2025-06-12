@@ -10,7 +10,7 @@ set -o nounset
 
 #can use if you prefer
 #while ! nc -z $SQL_HOST $SQL_PORT; do
-#    sleep 0.1
+#    sleep 0.2
 #    >&2 echo 'Waiting for PostgreSQL to become available...'
 #done
 #>&2 echo 'postgres OK.'
@@ -38,7 +38,7 @@ END
 }
 until postgres_ready; do
   >&2 echo 'Waiting for PostgreSQL to become available...'
-  #>&2 set | grep SQL
+  #>&2 set #use to check evn settings on terminal
   sleep 2
   >&2 echo 'sleeping 2...'
 done

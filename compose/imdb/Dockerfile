@@ -8,14 +8,14 @@ RUN apt-get update \
   # dependencies for building Python packages
   && apt-get install -y build-essential \
   # psycopg dependencies
-  && apt-get install -y libpq-dev \
+  && apt-get install -y libpq-dev postgresql-client \
   # Translations dependencies
   && apt-get install -y gettext \
-  # Additional dependencies (dev)
+  # Additional dependencies (debigging optional)
   && apt-get install -y git procps telnet \
   # cleaning up unused files \
-  # following for nc and debugging
-  && apt-get install -y --no-install-recommends gcc netcat tmux screen vim  \
+  # following for nc and debugging -optional
+  && apt-get install -y --no-install-recommends gcc netcat curl tmux screen vim  \
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   && rm -rf /var/lib/apt/lists/*
 
@@ -41,8 +41,6 @@ COPY ./uv.lock /uv.lock
 #https://github.com/astral-sh/uv/issues/8085#issuecomment-2406665798
 RUN uv export  | uv pip install -r - --system   # until uv sync --system works again.
 
-
 RUN chmod +x /entrypoint.sh /start.sh
-
 
 CMD ["/start.sh"]
