@@ -9,11 +9,12 @@ services:
     entrypoint: [ "/entrypoint.sh" ]
     volumes:
       - ./imdb:/app/imdb
+      - ./data:/app/data   #persist downloads to the data folder in the project
     depends_on:
       - db
     working_dir: /app
     ports:
-      - "8000:8000"
+      - "${WEB_PORT}:8000"
 
   db:
     image: postgres:15

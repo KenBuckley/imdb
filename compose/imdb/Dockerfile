@@ -9,8 +9,8 @@ RUN apt-get update \
   && apt-get install -y build-essential \
   # psycopg dependencies
   && apt-get install -y libpq-dev postgresql-client \
-  # Translations dependencies
-  && apt-get install -y gettext \
+  # gunzip
+  && apt-get install -y gzip \
   # Additional dependencies (debigging optional)
   && apt-get install -y git procps telnet \
   # cleaning up unused files \
