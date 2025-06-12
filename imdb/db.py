@@ -1,6 +1,6 @@
 from sqlalchemy import Table, Column, String, Integer, Boolean, ForeignKey, MetaData
 
-
+#SQLAlchemy Core
 meta = MetaData()
 
 movie = Table(
@@ -17,8 +17,8 @@ movie = Table(
 
 genre = Table(
     'genre', meta,
-    Column('tconst', String, ForeignKey('public.movie.tconst', ondelete='CASCADE'), primary_key=True, nullable=False),
-    Column('genre', String, primary_key=True, nullable=False),
+    Column('tconst', String(50), ForeignKey('public.movie.tconst', ondelete='CASCADE'), primary_key=True, nullable=False),
+    Column('genre', String(100), primary_key=True, nullable=False),
     schema='public'
 )
 

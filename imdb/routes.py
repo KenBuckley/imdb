@@ -1,4 +1,4 @@
-from views import index, get_all_movies, get_movie_by_id
+from .views import index, get_all_movies, get_movie_by_id
 
 def setup_routes(app):
     app.router.add_get('/', index)

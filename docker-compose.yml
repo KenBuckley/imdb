@@ -1,4 +1,20 @@
 services:
+  web:
+    build:
+      context: .
+      dockerfile: compose/imdb/Dockerfile
+    env_file:
+      - .env  #relative to docker-compose.yml,regardless of what you set as the build.context
+    command: [ "/start.sh" ]
+    entrypoint: [ "/entrypoint.sh" ]
+    volumes:
+      - ./imdb:/app/imdb
+    depends_on:
+      - db
+    working_dir: /app
+    ports:
+      - "8000:8000"
+
   db:
     image: postgres:15
     container_name: postgres15

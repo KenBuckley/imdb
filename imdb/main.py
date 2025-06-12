@@ -5,12 +5,13 @@ from aiohttp import web
 from aiohttp_swagger import *
 
 #local imports
-from routes import setup_routes
-from settings import load_config,load_connection_pool
+from .routes import setup_routes
+from .settings import load_config,load_connection_pool
 
 
 
 async def init_app():
+
     async def on_cleanup(app):
         await app['db'].close()
 
@@ -26,7 +27,7 @@ async def init_app():
 
     return app
 
-
-# Run the app
 if __name__ == '__main__':
-    web.run_app(init_app())
+    import asyncio
+    app = asyncio.run(init_app())
+    web.run_app(app)

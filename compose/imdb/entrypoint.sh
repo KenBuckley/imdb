@@ -8,7 +8,7 @@ set -o pipefail
 set -o nounset
 
 
-#can use prefer
+#can use if you prefer
 #while ! nc -z $SQL_HOST $SQL_PORT; do
 #    sleep 0.1
 #    >&2 echo 'Waiting for PostgreSQL to become available...'
@@ -38,9 +38,9 @@ END
 }
 until postgres_ready; do
   >&2 echo 'Waiting for PostgreSQL to become available...'
-  >&2 set | grep SQL
-  sleep 5
-  >&2 echo 'sleeping 5...'
+  #>&2 set | grep SQL
+  sleep 2
+  >&2 echo 'sleeping 2...'
 done
 >&2 echo 'PostgreSQL ok'
 
