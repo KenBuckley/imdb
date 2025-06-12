@@ -38,3 +38,12 @@ tt0000049	short	Boxing Match; or, Glove Contest	Boxing Match; or, Glove Contest	
 
 some movies have no genre: (might substitute unknown -otherwise might not show when searching for genre=any)
 "tt0000502"	"movie"	"Bohemios"	"Bohemios"	false	1905		100	 [null]
+
+
+There are many movies without a rating - so we should return null for the rating if it is not present:
+there are 386K movie records without a rating
+SELECT count(m.*)
+FROM public.movie m
+LEFT JOIN public.rating r ON m.tconst = r.tconst
+WHERE r."averageRating" IS NULL;
+>>386544
