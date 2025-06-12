@@ -12,5 +12,6 @@ wheels/
 
 #local roughwork directory
 roughwork/
-data/
-database/*.tsv
+data/*.tsv
+data/*.gz
+database/

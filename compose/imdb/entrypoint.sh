@@ -8,6 +8,48 @@ set -o pipefail
 set -o nounset
 
 
+# download the imdb data files if they are not present
+# github (free tier) only allows files to 100MB , which forces us to download the files
+# on first run. The imdb files may change at any time so this introduces
+# an element of risk to the project (because the imdb files may have breaking changes in
+# the future). So we would prefer to self host the tsv files if possible.
+# File to check (uncompressed)
+FILE="/app/data/title.ratings.tsv"
+
+
+# Download URL
+URL="https://datasets.imdbws.com/title.ratings.tsv.gz"
+
+# If file does not exist, download and unzip
+if [ ! -f "$FILE" ]; then
+    echo "File $FILE not found. Downloading and extracting..."
+    cd /app/data
+    curl -O "$URL"
+    gunzip -f title.ratings.tsv.gz
+else
+    echo "File $FILE already exists. Skipping download."
+fi
+
+# File to check (uncompressed)
+FILE_B="/app/data/title.basics.tsv"
+
+# Download URL_B
+URL_B="https://datasets.imdbws.com/title.basics.tsv.gz"
+
+# If file does not exist, download and unzip
+if [ ! -f "$FILE_B" ]; then
+    echo "File $FILE_B not found. Downloading and extracting..."
+    cd /app/data
+    curl -O "$URL_B"
+    gunzip -f title.basics.tsv.gz
+else
+    echo "File $FILE_B already exists. Skipping download."
+fi
+
+#important move back to the /app directory after the cd to data.
+cd /app  #reset to root directory after downloads
+
+#hopefully at this stage postgres is ready
 #can use if you prefer
 #while ! nc -z $SQL_HOST $SQL_PORT; do
 #    sleep 0.2
@@ -44,6 +86,7 @@ until postgres_ready; do
 done
 >&2 echo 'PostgreSQL ok'
 
+#pwd #debugging assistance
 
 #If you have an image with an entrypoint pointing to entrypoint.sh, and you run your container as
 #docker run my_image server start,

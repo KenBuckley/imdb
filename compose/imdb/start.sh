@@ -54,7 +54,7 @@ echo "Initializing database schema..."
 #create tables movie and genre as per SqlAlchemy defs., if tables exist they will not be created
 python imdb/init_db.py
 
-#ususally move these commands to a .sql file to run but this is another way to run
+#usually move these commands to a .sql file to run but this is another way to run
 psql "$DATABASE_URL" <<EOF
 DO \$\$
 BEGIN
