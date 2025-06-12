@@ -9,7 +9,7 @@ export DATABASE_URL="postgresql://${SQL_USER}:${SQL_PASSWORD}@${SQL_HOST}:${SQL_
 
 echo "load datasets from tsv files..."
 psql "$DATABASE_URL" <<'EOF'
--- Create the tables if they do not exist
+-- Create the tables if they do not exist, todo:wrap in psql for more verbose messaging to terminal
 CREATE TABLE IF NOT EXISTS title_basics (
     tconst TEXT,
     titleType TEXT,
@@ -51,7 +51,7 @@ fi
 
 
 echo "Initializing database schema..."
-#create tables movie and genre as per SqlAlchemy defs., if tables exist they will not be created
+#create tables movie,rating and genre as per SqlAlchemy defs., if tables exist they will not be created
 python imdb/init_db.py
 
 #usually move these commands to a .sql file to run but this is another way to run
@@ -94,6 +94,19 @@ BEGIN
         from public.title_basics
         where titletype='movie'
         and genres is not null;
+    ELSE
+        RAISE NOTICE 'Table genre: data already exists. Skipping.';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM public.rating LIMIT 1) THEN
+        RAISE NOTICE 'Loading rating data...';
+        INSERT INTO public.rating (tconst, "averageRating", "numVotes")
+        SELECT
+            tconst,
+            averagerating::double precision,
+            numvotes
+        FROM
+            public.title_ratings
+        ON CONFLICT (tconst) DO NOTHING;
     ELSE
         RAISE NOTICE 'Table genre: data already exists. Skipping.';
     END IF;

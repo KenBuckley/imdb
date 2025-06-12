@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, MetaData
-from db import movie,genre
+from db import movie,genre,rating
 from settings import load_config
 
 """
@@ -12,7 +12,7 @@ Tables will not be created if they already exist.
 def create_tables(engine):
     meta = MetaData()
     #create all the tables defined in the MetaData()
-    meta.create_all(bind=engine,checkfirst=True, tables=[movie,genre])
+    meta.create_all(bind=engine,checkfirst=True, tables=[movie,genre,rating])
 
 
 config=load_config()

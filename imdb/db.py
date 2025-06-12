@@ -1,4 +1,4 @@
-from sqlalchemy import Table, Column, String, Integer, Boolean, ForeignKey, MetaData
+from sqlalchemy import Table, Column, String, Integer, Boolean, ForeignKey, Float, MetaData
 
 #SQLAlchemy Core
 meta = MetaData()
@@ -19,6 +19,15 @@ genre = Table(
     'genre', meta,
     Column('tconst', String(50), ForeignKey('public.movie.tconst', ondelete='CASCADE'), primary_key=True, nullable=False),
     Column('genre', String(100), primary_key=True, nullable=False),
+    schema='public'
+)
+
+rating = Table(
+    'rating',
+    meta,
+    Column('tconst', String(50), primary_key=True),
+    Column('averageRating', Float, nullable=False),
+    Column('numVotes', Integer, nullable=False),
     schema='public'
 )
 
