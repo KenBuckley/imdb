@@ -17,7 +17,20 @@ async def get_all_movies(request):
     """
     pool = request.app['db']
     async with pool.acquire() as conn:
-        rows = await conn.fetch("SELECT * FROM public.movie")
+        rows = await conn.fetch("""
+          SELECT m.tconst,
+                 m.titletype,
+                 m.primarytitle,
+                 m.originaltitle,
+                 m.isadult,
+                 m.startyear,
+                 m.runtimeminutes,
+                 r."averageRating",
+                 'https://www.imdb.com/title/' || m.tconst AS url
+          FROM public.movie m
+          LEFT JOIN public.rating r ON m.tconst = r.tconst 
+          """)
+
         # Convert to list of dicts
         movies = [dict(row) for row in rows]
         return web.json_response(movies)
@@ -29,9 +42,19 @@ async def get_movie_by_id(request):
     pool = request.app['db']
 
     async with pool.acquire() as conn:
-        row = await conn.fetchrow(
-            'SELECT * FROM public.movie WHERE tconst = $1', movie_id
-        )
+        row = await conn.fetchrow("""
+          SELECT m.tconst,
+                 m.titletype,
+                 m.primarytitle,
+                 m.originaltitle,
+                 m.isadult,
+                 m.startyear,
+                 m.runtimeminutes,
+                 r."averageRating",
+                 'https://www.imdb.com/title/' || m.tconst AS url
+          FROM public.movie m
+          LEFT JOIN public.rating r ON m.tconst = r.tconst
+          WHERE m.tconst = $1 """, movie_id)
         if row:
             return web.json_response(dict(row))
         else:

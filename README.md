@@ -47,3 +47,22 @@ FROM public.movie m
 LEFT JOIN public.rating r ON m.tconst = r.tconst
 WHERE r."averageRating" IS NULL;
 >>386544
+
+
+> 
+> json example of a record with no rating:
+>http://localhost:8080/movie/tt0000846
+> 
+> {
+"tconst": "tt0000846",
+"titletype": "movie",
+"primarytitle": "Un día en Xochimilco",
+"originaltitle": "Un día en Xochimilco",
+"isadult": false,
+"startyear": 1909,
+"runtimeminutes": null,
+"averageRating": null
+}
+>
+ 
+
