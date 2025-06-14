@@ -3,7 +3,14 @@ from aiohttp import web
 #import asyncpg
 #import json
 
-
+# Valid genres -move to utility to share with create movie below
+    # we got the
+valid_genres = {
+    'Animation', 'Biography', 'Comedy', 'Crime', 'Documentary', 'Drama',
+    'Family', 'Fantasy', 'Film-Noir', 'Game-Show', 'History', 'Horror',
+    'Music', 'Musical', 'Mystery', 'News', 'Reality-TV', 'Romance',
+    'Sci-Fi', 'Short', 'Sport', 'Talk-Show', 'Thriller', 'War', 'Western'
+}
 async def index(request):
     db = request.app['config']['postgres']['database']
     host = request.app['config']['postgres']['host']
@@ -69,13 +76,7 @@ async def get_all_movies(request):
         'tconst_asc': 'm.tconst ASC'
     }
 
-    # Valid genres
-    valid_genres = {
-        'Animation', 'Biography', 'Comedy', 'Crime', 'Documentary', 'Drama',
-        'Family', 'Fantasy', 'Film-Noir', 'Game-Show', 'History', 'Horror',
-        'Music', 'Musical', 'Mystery', 'News', 'Reality-TV', 'Romance',
-        'Sci-Fi', 'Short', 'Sport', 'Talk-Show', 'Thriller', 'War', 'Western'
-    }
+
 
     # Validation
     if sort_param not in valid_sorts:
@@ -208,3 +209,205 @@ async def get_movie_by_id(request):
                 return web.Response(status=404, text='Movie not found')
         except Exception as e:
             return web.json_response ({'error': 'There was a database error.'}, status=500 )
+
+
+async def generate_unique_tconst(conn):
+    """Generate a new tconst  in IMDB format (tt + 7 digits) by finding max + 1"""
+    try:
+        # approach: Find the highest numeric value from existing tconst IDs
+        # Extract digits after 'tt' prefix and convert to integer
+        # get the max number after the tt
+        # could just do max tconst and this will also work.
+        max_tconst = await conn.fetchval("""
+                                         SELECT max(tconst)
+                                         FROM public.movie
+                                         """)
+        max_tconst= max_tconst.strip()
+        max_number = int(max_tconst[2:])
+
+        # Increment by 1 for new ID
+        new_number = max_number + 1
+
+        if new_number <= 9_999_999:  #7x9
+            tconst = f"tt{new_number:07d}"
+        elif new_number > 9_999_999 and new_number <= 99_999_999: #8x9
+            tconst = f"tt{new_number:08d}"
+        else:
+            raise Exception(f"we have reached the limit of the current key size")
+
+        return tconst
+
+    except Exception as e:
+        raise Exception(f"Could not generate a tconst: {str(e)}")
+
+
+
+async def create_movie(request):
+    """
+    ---
+    description: Create a new movie with optional genres
+    tags:
+      - IMDB
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - title
+            properties:
+              title:
+                type: string
+                description: Primary title of the movie
+                maxLength: 1000
+              originaltitle:
+                type: string
+                description: Original title of the movie
+                maxLength: 1000
+              startyear:
+                type: integer
+                description: Year the movie was released
+                minimum: 1800
+                maximum:
+              rating:
+                type: number
+                description: Movie rating (0.0 - 10.0)
+                minimum: 0
+                maximum: 10
+              runtimeminutes:
+                type: integer
+                description: Runtime in minutes
+                minimum: 1
+              genres:
+                type: array
+                description: List of genres for the movie
+                items:
+                  type: string
+                  enum: [Animation, Biography, Comedy, Crime, Documentary, Drama, Family, Fantasy, Film-Noir, Game-Show, History, Horror, Music, Musical, Mystery, News, Reality-TV, Romance, Sci-Fi, Short, Sport, Talk-Show, Thriller, War, Western]
+    responses:
+      "201":
+        description: Movie created successfully
+      "400":
+        description: Invalid input data
+      "500":
+        description: Database error
+    """
+    pool = request.app['db']
+
+
+
+    try:
+        # Parse JSON request body
+        data = await request.json()
+    except Exception:
+        return web.json_response(
+            {'error': 'Invalid JSON in request body'},
+            status=400
+        )
+
+    # Validate required fields
+    if 'title' not in data or not data['title'].strip():
+        return web.json_response(
+            {'error': 'Title is required and cannot be empty'},
+            status=400
+        )
+
+    # Extract and validate data
+    # todo: keep the field lengths in one location and apply to sqlalchemy definitions
+    #
+    title = data['title'].strip()[:1000]  # Truncate to max length
+    originaltitle = data.get('originaltitle', '').strip()[:1000] if data.get('originaltitle') else None
+    startyear = data.get('startyear')
+    rating = data.get('rating')
+    runtimeminutes = data.get('runtimeminutes')
+    genres = data.get('genres', [])
+
+    # Validate data types and ranges
+    try:
+        if startyear is not None:
+            startyear = int(startyear)
+            if startyear < 1800:
+                #todo we need to limit the size to prevent errors if number is too big
+                raise ValueError("startyear must be > 1800.")
+
+        if rating is not None:
+            rating = float(rating)
+            if rating < 0 or rating > 10:
+                #todo force to xx.y for number (3,1) in database.
+                raise ValueError("rating must be between 0.0 and 10.0")
+
+        if runtimeminutes is not None:
+            runtimeminutes = int(runtimeminutes)
+            if runtimeminutes < 1:
+                raise ValueError("runtimeminutes must be greater than 0")
+
+        if not isinstance(genres, list):
+            raise ValueError("genres must be a list")
+
+        # Validate genres
+        for genre in genres:
+            if genre not in valid_genres:
+                raise ValueError(f"Invalid genre '{genre}'. Valid genres: {sorted(valid_genres)}")
+
+        # Remove duplicates from genres
+        genres = list(set(genres))
+
+    except (ValueError, TypeError) as e:
+        return web.json_response(
+            {'error': f'Invalid data: {str(e)}'},
+            status=400
+        )
+
+    try:
+        async with pool.acquire() as conn:
+            # Start transaction
+            async with conn.transaction():
+                # Generate unique tconst
+                tconst = await generate_unique_tconst(conn)
+
+                # Insert movie
+                await conn.execute("""
+                                   INSERT INTO public.movie (tconst, title, originaltitle, startyear, rating, runtimeminutes)
+                                   VALUES ($1, $2, $3, $4, $5, $6)
+                                   """, tconst, title, originaltitle, startyear, rating, runtimeminutes)
+
+                # Insert genres (if there are any)
+                if genres:
+                    genre_values = [(tconst, genre) for genre in genres]
+                    await conn.executemany("""
+                                           INSERT INTO public.genre (tconst, genre)
+                                           VALUES ($1, $2)
+                                           """, genre_values)
+
+                # Fetch the created movie with genres for response
+                movie_data = await conn.fetchrow("""
+                                                 SELECT m.tconst,
+                                                        COALESCE(array_agg(g.genre ORDER BY g.genre)
+                                                                 FILTER(WHERE g.genre IS NOT NULL), ARRAY[]
+                                                                 ::varchar[])                     AS genres,
+                                                        m.title,
+                                                        m.originaltitle,
+                                                        m.startyear,
+                                                        m.rating::float, m.runtimeminutes,
+                                                        'https://www.imdb.com/title/' || m.tconst AS url
+                                                 FROM public.movie m
+                                                          LEFT JOIN public.genre g ON m.tconst = g.tconst
+                                                 WHERE m.tconst = $1
+                                                 GROUP BY m.tconst, m.title, m.originaltitle, m.startyear, m.rating,
+                                                          m.runtimeminutes
+                                                 """, tconst)
+
+        return web.json_response(
+            {
+                'message': 'Movie created successfully',
+                'movie': dict(movie_data)
+            },
+            status=201
+        )
+
+    except Exception as e:
+        return web.json_response(
+            {'error': f'Database error: {str(e)}'},
+            status=500
+        )

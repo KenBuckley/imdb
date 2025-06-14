@@ -17,6 +17,18 @@ GET /movies/id
 POST /movies
 
 
+curl -X POST http://localhost:8080/movie \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "My Adventure Movie",
+    "originaltitle": "mijn avonturenfilm",
+    "startyear": 2024,
+    "rating": 8.5,
+    "runtimeminutes": 120,
+    "genres": ["Comedy", "Drama"]
+  }'
+
+
 Running the server locally using python:
 The packge manager used here is uv, so it will need to be installed on the local machine.
 
@@ -27,18 +39,6 @@ uv sync
 python -m imdb.main
 
 
-
-specifically the following files were used to create the database
-
-
-obtaining the data to build the database:
-1.title.basics.tsv.gz
-2.title.ratings.tsv.gz
-
-
-
-
-
 Edge cases in table title.basics.tsv:
 multiole titles:
 tt0000049	short	Boxing Match; or, Glove Contest	Boxing Match; or, Glove Contest	0	1896	\N	\N	Short,Sport
@@ -47,14 +47,17 @@ some movies have no genre: (might substitute unknown -otherwise might not show w
 "tt0000502"	"movie"	"Bohemios"	"Bohemios"	false	1905		100	 [null]
 
 table design: 
-we keep the field original title as that might also be used in the search for the title (more information needed).
+it might also be good to keep the field originalTitle as that might also be used in the search for the title 
+especially for titles that are not in english. We could also add unaccent or og_trgm to assist with searching titles and
+originalTitle.
+(more information needed to make this decision).
 
 Do not apply indexes before bulk data loading, or else this will slow down the loading. Apply indexes after data loading.
 
 the program should take into account that when creating a movie, that movie/genre are keys on table genre, 
 hence we should remove duplicate genes from the creation of a new movie (many different methods available to do this).
 
-There are many movies without a rating - so we should return null for the rating if it is not present:
+There are many movies without a rating - so we return null for the rating if it is not present:
 there are 386K movie records without a rating
 SELECT count(m.*)
 FROM public.movie m
@@ -63,11 +66,5 @@ WHERE r."averageRating" IS NULL;
 >>386544
 
 
-> 
-> json example of a record with no rating:
->http://localhost:8080/movie/tt0000846
-> 
-
->
  
 
