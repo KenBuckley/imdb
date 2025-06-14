@@ -7,11 +7,13 @@ set -o nounset
 #could put this env DATABASE_URL in the docker-compose.yml too.
 export DATABASE_URL="postgresql://${SQL_USER}:${SQL_PASSWORD}@${SQL_HOST}:${SQL_PORT}/${SQL_DB}"
 
+#create the temporary tables to load data from the tsv files
+#we can delete these tables later if we wish, after we have inserted into table movie and table genre.
 echo "load datasets from tsv files..."
 psql "$DATABASE_URL" <<'EOF'
--- Create the tables if they do not exist, todo:wrap in psql for more verbose messaging to terminal
+-- Create the tables if they do not exist,
 CREATE TABLE IF NOT EXISTS title_basics (
-    tconst TEXT,
+    tconst TEXT PRIMARY KEY,
     titleType TEXT,
     primaryTitle TEXT,
     originalTitle TEXT,
@@ -24,7 +26,7 @@ CREATE TABLE IF NOT EXISTS title_basics (
 
 CREATE TABLE IF NOT EXISTS title_ratings (
     tconst TEXT PRIMARY KEY,
-    averageRating REAL,
+    averageRating NUMERIC(3,1),
     numVotes INTEGER
 );
 
@@ -51,8 +53,10 @@ fi
 
 
 echo "Initializing database schema..."
-#create tables movie,rating and genre as per SqlAlchemy defs., if tables exist they will not be created
-python imdb/init_db.py
+#create tables movie and genre as per SqlAlchemy defs., if tables exist they
+# 1. will not be created
+# 2. will not be populated
+python /app/imdb/init_db.py
 
 #usually move these commands to a .sql file to run but this is another way to run
 psql "$DATABASE_URL" <<EOF
@@ -62,24 +66,28 @@ BEGIN
         RAISE NOTICE 'Loading movie data...';
         INSERT INTO public.movie (
             tconst,
-            titletype,
-            primarytitle,
+            --titletype,
+            title,
             originaltitle,
-            isadult,
+            --isadult,
             startyear,
             runtimeminutes
         )
         SELECT
             tconst,
-            titletype,
+            --titletype,
             primarytitle,
             originaltitle,
-            isadult,
+            --isadult,
             startyear,
             runtimeminutes
         FROM public.title_basics
         where titletype = 'movie';
-
+        RAISE NOTICE 'Loading movie data (including ratings)...';
+        UPDATE movie m
+        set rating =  averagerating
+        FROM public.title_ratings r
+        where m.tconst = r.tconst;
     ELSE
         RAISE NOTICE 'Table movie: data already exists. Skipping.';
     END IF;
@@ -97,22 +105,12 @@ BEGIN
     ELSE
         RAISE NOTICE 'Table genre: data already exists. Skipping.';
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM public.rating LIMIT 1) THEN
-        RAISE NOTICE 'Loading rating data...';
-        INSERT INTO public.rating (tconst, "averageRating", "numVotes")
-        SELECT
-            tconst,
-            averagerating::double precision,
-            numvotes
-        FROM
-            public.title_ratings
-        ON CONFLICT (tconst) DO NOTHING;
-    ELSE
-        RAISE NOTICE 'Table genre: data already exists. Skipping.';
-    END IF;
+
 END
 \$\$;
 EOF
+
+
 
 
 

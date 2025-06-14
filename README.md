@@ -3,10 +3,28 @@
 
 imdb API
 
+Quick start
+To run the application in docker,type
+docker compose up -d --build 
+
+In your browser you can see the documentation for the api at 
+http://localhost:8080/api/doc#/IMDB
+
+
+
 GET /movies
 GET /movies/id
 POST /movies
 
+
+Running the server locally using python:
+The packge manager used here is uv, so it will need to be installed on the local machine.
+
+cd to the project directory imdb.
+from the directory containing docker-compose.yml enter the following commands:
+uv venv 
+uv sync
+python -m imdb.main
 
 
 The data files were downloaded from https://datasets.imdbws.com/. 
@@ -39,6 +57,13 @@ tt0000049	short	Boxing Match; or, Glove Contest	Boxing Match; or, Glove Contest	
 some movies have no genre: (might substitute unknown -otherwise might not show when searching for genre=any)
 "tt0000502"	"movie"	"Bohemios"	"Bohemios"	false	1905		100	 [null]
 
+table design: 
+we keep the field original title as that might also be used in the search for the title (more information needed).
+
+Do not apply indexes before bulk data loading, or else this will slow down the loading. Apply indexes after data loading.
+
+the program should take into account that when creating a movie, that movie/genre are keys on table genre, 
+hence we should remove duplicate genes from the creation of a new movie (many different methods available to do this).
 
 There are many movies without a rating - so we should return null for the rating if it is not present:
 there are 386K movie records without a rating
@@ -56,7 +81,7 @@ WHERE r."averageRating" IS NULL;
 > {
 "tconst": "tt0000846",
 "titletype": "movie",
-"primarytitle": "Un día en Xochimilco",
+"title": "Un día en Xochimilco",
 "originaltitle": "Un día en Xochimilco",
 "isadult": false,
 "startyear": 1909,

@@ -9,14 +9,14 @@ set -o nounset
 
 
 # download the imdb data files if they are not present
-# github (free tier) only allows files to 100MB , which forces us to download the files
-# on first run. The imdb files may change at any time so this introduces
+# github (free tier) only allows individual file sizes of max 100MB , which forces us to download the files
+# on first run. They will not be downloaded again if they are found to exist in /app/data.
+#
+# The imdb files may change at any time so this introduces
 # an element of risk to the project (because the imdb files may have breaking changes in
 # the future). So we would prefer to self host the tsv files if possible.
 # File to check (uncompressed)
 FILE="/app/data/title.ratings.tsv"
-
-
 # Download URL
 URL="https://datasets.imdbws.com/title.ratings.tsv.gz"
 
@@ -50,14 +50,14 @@ fi
 cd /app  #reset to root directory after downloads
 
 #hopefully at this stage postgres is ready
-#can use if you prefer
+# you can use nc to check for postgres if you prefer:
 #while ! nc -z $SQL_HOST $SQL_PORT; do
 #    sleep 0.2
 #    >&2 echo 'Waiting for PostgreSQL to become available...'
 #done
 #>&2 echo 'postgres OK.'
 
-
+#Check to see if postgress is available, wait until  it is ready
 postgres_ready() {
 python << END
 import sys
@@ -80,7 +80,7 @@ END
 }
 until postgres_ready; do
   >&2 echo 'Waiting for PostgreSQL to become available...'
-  #>&2 set #use to check evn settings on terminal
+  #>&2 set #debugging assistance. use to check evn settings on terminal
   sleep 2
   >&2 echo 'sleeping 2...'
 done
