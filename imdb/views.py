@@ -41,8 +41,8 @@ async def get_all_movies(request):
         'year_desc': 'm.startyear DESC NULLS LAST',
         'rating_asc': 'm.rating ASC NULLS LAST',
         'rating_desc': 'm.rating DESC NULLS LAST',
-        'title_asc': 'm.primarytitle ASC',
-        'title_desc': 'm.primarytitle DESC',
+        'title_asc': 'm.title ASC',
+        'title_desc': 'm.title DESC',
         'tconst_asc': 'm.tconst ASC'  # default fallback
     }
 
@@ -60,9 +60,9 @@ async def get_all_movies(request):
 
             query = f"""
                 SELECT m.tconst,
+                       m.title,
                        COALESCE(array_agg(g.genre ORDER BY g.genre) 
                                 FILTER (WHERE g.genre IS NOT NULL), ARRAY[]::varchar[]) AS genre,
-                       m.primarytitle,
                        m.startyear,
                        m.rating::float,
                        m.runtimeminutes,
@@ -71,8 +71,8 @@ async def get_all_movies(request):
                 LEFT JOIN public.genre g ON m.tconst = g.tconst 
                 GROUP BY m.tconst
                 ORDER BY {order_clause}
-                
-            """
+                limit 6
+            """ #todo remove limit
             rows = await conn.fetch(query)
             return web.json_response([dict(row) for row in rows])
     except Exception as e:
@@ -110,7 +110,6 @@ async def get_movie_by_id(request):
               SELECT m.tconst,
                      COALESCE(array_agg(g.genre ORDER BY g.genre) 
                               FILTER (WHERE g.genre IS NOT NULL), ARRAY[]::varchar[]) AS genre,
-                     --titletype,
                      m.title,
                      --m.originaltitle,
                      --m.isadult,
@@ -122,8 +121,6 @@ async def get_movie_by_id(request):
               left join public.genre g on m.tconst = g.tconst
               WHERE m.tconst = $1 
               group by m.tconst
-              order by m.tconst asc
-              order by {order_clause}
               """, movie_id)
             if row:
                 return web.json_response(dict(row))
