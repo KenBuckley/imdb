@@ -17,7 +17,8 @@ GET /movies/id
 POST /movies  
 
 To create a new movie entry, post a json dataset to the server as follows:
-<pre>```bash 
+```
+bash 
   curl -X POST http://localhost:8080/movie \
   -H "Content-Type: application/json" \
   -d '{
@@ -28,7 +29,7 @@ To create a new movie entry, post a json dataset to the server as follows:
     "runtimeminutes": 120,
     "genres": ["Comedy", "Drama"]
   }'
-```</pre>
+```
 
 Optional api question: pagination techniques.
 If the api is going to be used for a web interface then the web interface would ask for
