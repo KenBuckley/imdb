@@ -9,7 +9,7 @@ services:
     entrypoint: [ "/entrypoint.sh" ]
     volumes:
       - ./imdb:/app/imdb
-      - ./data:/app/data   #persist downloads to the data folder in the project
+      - ./data:/app/data   #persist downloads to the data folder in the project(or optional use a volume)
     depends_on:
       - db
     working_dir: /app

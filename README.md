@@ -3,33 +3,62 @@
 
 imdb API
 
+Quick start
+To run the application in docker,type
+docker compose up -d --build 
+
+In your browser you can see the documentation for the api at 
+http://localhost:8080/api/doc#/IMDB
+
+
+
 GET /movies
 GET /movies/id
 POST /movies
 
+To create a new movie entry, post a json dataset to the server as follows:
+curl -X POST http://localhost:8080/movie \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "My Adventure Movie",
+    "originaltitle": "mijn avonturenfilm",
+    "startyear": 2024,
+    "rating": 8.5,
+    "runtimeminutes": 120,
+    "genres": ["Comedy", "Drama"]
+  }'
 
+Optional api question: pagination techniques.
+If the api is going to be used for a web interface then the web interface would ask for
+the standard paging below, but if the api is focused on providing data for processing then I would 
+prefer to have offset and the number of records to collect i.e. collect from position 100,000 and provide 50K records.
+That way we can work through the whole api and process all the records in bulk batches.
 
-The data files were downloaded from https://datasets.imdbws.com/. 
-Their description is here: https://www.imdb.com/interfaces/
+#paging for a web site:
+async def get_all_movies(request):
+    # Get query parameters
+    page = int(request.query.get('page', 1))
+    limit = int(request.query.get('limit', 50))
+    offset = (page - 1) * limit
+    
+    # Add to your query
+    rows = await conn.fetch("""
+        SELECT ... 
+        FROM public.movie m 
+        LEFT JOIN public.genre g ON m.tconst = g.tconst 
+        GROUP BY m.tconst
+        ORDER BY tconst ASC
+        LIMIT $1 OFFSET $2
+    """, limit, offset)
 
+Running the server locally using python:
+The packge manager used here is uv, so it will need to be installed on the local machine.
 
-specifically the following files were used to create the database
-
-
-obtaining the data to build the database:
-1.title.basics.tsv.gz
-2.title.ratings.tsv.gz
-
-
-url -O https://datasets.imdbws.com/title.basics.tsv.gz #(size 197M)  June 2025
-   
-
-curl -O https://datasets.imdbws.com/title.ratings.tsv.gz   #(size 7750k) June 2025
-
-
-unpack the datasets into tsv files, i.e.  '7z e  title.basics.tsv.gz'
-
-
+cd to the project directory imdb.
+from the directory containing docker-compose.yml enter the following commands:
+uv venv 
+uv sync
+python -m imdb.main
 
 
 Edge cases in table title.basics.tsv:
@@ -38,3 +67,26 @@ tt0000049	short	Boxing Match; or, Glove Contest	Boxing Match; or, Glove Contest	
 
 some movies have no genre: (might substitute unknown -otherwise might not show when searching for genre=any)
 "tt0000502"	"movie"	"Bohemios"	"Bohemios"	false	1905		100	 [null]
+
+table design: 
+it might also be good to keep the field originalTitle as that might also be used in the search for the title 
+especially for titles that are not in english. We could also add unaccent or og_trgm to assist with searching titles and
+originalTitle.
+(more information needed to make this decision).
+
+Do not apply indexes before bulk data loading, or else this will slow down the loading. Apply indexes after data loading.
+
+the program should take into account that when creating a movie, that movie/genre are keys on table genre, 
+hence we should remove duplicate genes from the creation of a new movie (many different methods available to do this).
+
+There are many movies without a rating - so we return null for the rating if it is not present:
+there are 386K movie records without a rating
+SELECT count(m.*)
+FROM public.movie m
+LEFT JOIN public.rating r ON m.tconst = r.tconst
+WHERE r."averageRating" IS NULL;
+>>386544
+
+
+ 
+
