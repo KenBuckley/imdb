@@ -35,12 +35,13 @@ If the api is going to be used for a web interface then the web interface would 
 the standard paging below, but if the api is focused on providing data for processing then I would 
 prefer to have seek pagination -here we have id's and timestamps in the data so easy to implement..
 
-#paging for a web site:
-async def get_all_movies(request):
-    # Get query parameters
-    page = int(request.query.get('page', 1))
-    limit = int(request.query.get('limit', 50))
-    offset = (page - 1) * limit
+```
+#paging for a web site:  
+async def get_all_movies(request):  
+    # Get query parameters  
+    page = int(request.query.get('page', 1))  
+    limit = int(request.query.get('limit', 50))  
+    offset = (page - 1) * limit  
     
     # Add to the query
     rows = await conn.fetch("""
@@ -51,6 +52,7 @@ async def get_all_movies(request):
         ORDER BY tconst ASC
         LIMIT $1 OFFSET $2
     """, limit, offset)
+```  
 
 Running the server locally using python:
 The packge manager used here is uv, so it will need to be installed on the local machine.
