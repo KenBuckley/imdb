@@ -64,18 +64,20 @@ uv sync
 source .venv/bin/activate    
 python -m imdb.main   
 
-now in your browser go to localhost:8080/api/doc 
+now in your browser go to localhost:8080/api/doc .
+Note: if you run the server locally using python, you will download the imdb
+files (unzipped) to you local directory at the location install_dir/data. These will be downloaded
+only once, and will also be used if you build the container again. 
 
 
-
-Edge cases in table title.basics.tsv:
+### Edge cases in table title.basics.tsv:
 1. There are some movies with multiple titles:
 tt0000049	short	Boxing Match; or, Glove Contest	Boxing Match; or, Glove Contest	0	1896	\N	\N	Short,Sport
 
-some movies have no genre: (might substitute unknown -otherwise might not show when searching for genre=any)
+2. some movies have no genre: (might substitute unknown -otherwise might not show when searching for genre=any)
 "tt0000502"	"movie"	"Bohemios"	"Bohemios"	false	1905		100	 [null]
 
-table design: 
+### table design: 
 it might also be good to keep the field originalTitle as that might also be used in the search for the title 
 especially for titles that are not in english. We could also add unaccent or og_trgm to assist with searching titles and
 originalTitle.
@@ -86,13 +88,9 @@ Do not apply indexes before bulk data loading, or else this will slow down the l
 the program should take into account that when creating a movie, that movie/genre are keys on table genre, 
 hence we should remove duplicate genes from the creation of a new movie (many different methods available to do this).
 
-There are many movies without a rating - so we return null for the rating if it is not present:
+Note: there are many movies without a rating - so we return null for the rating if it is not present:
 there are 386K movie records without a rating
-SELECT count(m.*)
-FROM public.movie m
-LEFT JOIN public.rating r ON m.tconst = r.tconst
-WHERE r."averageRating" IS NULL;
->>386544
+
 
 
  
