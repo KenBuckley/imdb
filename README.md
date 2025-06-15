@@ -33,8 +33,7 @@ To create a new movie entry, post a json dataset to the server as follows:
 Optional api question: pagination techniques.
 If the api is going to be used for a web interface then the web interface would ask for
 the standard paging below, but if the api is focused on providing data for processing then I would 
-prefer to have offset and the number of records to collect i.e. collect from position 100,000 and provide 50K records.
-That way we can work through the whole api and process all the records in bulk batches.
+prefer to have seek pagination -here we have id's and timestamps in the data so easy to implement..
 
 #paging for a web site:
 async def get_all_movies(request):
@@ -43,7 +42,7 @@ async def get_all_movies(request):
     limit = int(request.query.get('limit', 50))
     offset = (page - 1) * limit
     
-    # Add to your query
+    # Add to the query
     rows = await conn.fetch("""
         SELECT ... 
         FROM public.movie m 
