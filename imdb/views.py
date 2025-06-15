@@ -323,7 +323,11 @@ async def create_movie(request):
     runtimeminutes = data.get('runtimeminutes')
     genres = data.get('genres', [])
 
-    # Validate data types and ranges
+    # Validate data types and ranges manually - this is a
+    # guess as to what is really required, I would need more info.
+    # Also we could also use pydantic,and get the bonus of the type checking as well
+    # (great to find type bugs) but I havnt used pydantic with aiohttp before
+    # so I will keep the checking simple.
     try:
         if startyear is not None:
             startyear = int(startyear)

@@ -16,7 +16,7 @@ GET /movies
 GET /movies/id
 POST /movies
 
-
+To create a new movie entry, post a json dataset to the server as follows:
 curl -X POST http://localhost:8080/movie \
   -H "Content-Type: application/json" \
   -d '{
@@ -28,6 +28,28 @@ curl -X POST http://localhost:8080/movie \
     "genres": ["Comedy", "Drama"]
   }'
 
+Optional api question: pagination techniques.
+If the api is going to be used for a web interface then the web interface would ask for
+the standard paging below, but if the api is focused on providing data for processing then I would 
+prefer to have offset and the number of records to collect i.e. collect from position 100,000 and provide 50K records.
+That way we can work through the whole api and process all the records in bulk batches.
+
+#paging for a web site:
+async def get_all_movies(request):
+    # Get query parameters
+    page = int(request.query.get('page', 1))
+    limit = int(request.query.get('limit', 50))
+    offset = (page - 1) * limit
+    
+    # Add to your query
+    rows = await conn.fetch("""
+        SELECT ... 
+        FROM public.movie m 
+        LEFT JOIN public.genre g ON m.tconst = g.tconst 
+        GROUP BY m.tconst
+        ORDER BY tconst ASC
+        LIMIT $1 OFFSET $2
+    """, limit, offset)
 
 Running the server locally using python:
 The packge manager used here is uv, so it will need to be installed on the local machine.

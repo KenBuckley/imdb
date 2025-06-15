@@ -54,8 +54,7 @@ fi
 
 echo "Initializing database schema..."
 #create tables movie and genre as per SqlAlchemy defs., if tables exist they
-# 1. will not be created
-# 2. will not be populated
+# will not be created
 python /app/imdb/init_db.py
 
 #usually move these commands to a .sql file to run but this is another way to run
