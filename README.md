@@ -60,17 +60,17 @@ cd to the project directory imdb.
 Make sure the database is running.
 From the directory containing docker-compose.yml enter the following commands (linux machine), 
 
-uv venv 
-uv sync 
-source .venv/bin/activate  
-python -m imdb.main    
+uv venv  
+uv sync  
+source .venv/bin/activate    
+python -m imdb.main   
 
 now in your browser go to localhost:8080/api/doc 
 
 
 
 Edge cases in table title.basics.tsv:
-multiole titles:
+1. There are some movies with multiple titles:
 tt0000049	short	Boxing Match; or, Glove Contest	Boxing Match; or, Glove Contest	0	1896	\N	\N	Short,Sport
 
 some movies have no genre: (might substitute unknown -otherwise might not show when searching for genre=any)
