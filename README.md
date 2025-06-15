@@ -8,16 +8,16 @@ To run the application in docker,type
 docker compose up -d --build 
 
 In your browser you can see the documentation for the api at 
-http://localhost:8080/api/doc#/IMDB
+http://localhost:8080/api/doc#/IMDB  
+  
 
 
-
-GET /movies
-GET /movies/id
-POST /movies
+GET /movies  
+GET /movies/id  
+POST /movies  
 
 To create a new movie entry, post a json dataset to the server as follows:
-curl -X POST http://localhost:8080/movie \
+<pre>```bash curl -X POST http://localhost:8080/movie \
   -H "Content-Type: application/json" \
   -d '{
     "title": "My Adventure Movie",
@@ -26,7 +26,7 @@ curl -X POST http://localhost:8080/movie \
     "rating": 8.5,
     "runtimeminutes": 120,
     "genres": ["Comedy", "Drama"]
-  }'
+  }'```</pre>
 
 Optional api question: pagination techniques.
 If the api is going to be used for a web interface then the web interface would ask for
@@ -55,10 +55,16 @@ Running the server locally using python:
 The packge manager used here is uv, so it will need to be installed on the local machine.
 
 cd to the project directory imdb.
-from the directory containing docker-compose.yml enter the following commands:
+Make sure the database is running.
+From the directory containing docker-compose.yml enter the following commands (linux machine), 
+
 uv venv 
-uv sync
-python -m imdb.main
+uv sync 
+source .venv/bin/activate  
+python -m imdb.main    
+
+now in your browser go to localhost:8080/api/doc 
+
 
 
 Edge cases in table title.basics.tsv:
