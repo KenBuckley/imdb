@@ -85,9 +85,19 @@ it might also be good to keep the field originalTitle as that might also be used
 especially for titles that are not in english. We could also add unaccent or og_trgm to assist with searching titles and
 originalTitle.
 (more information needed to make this decision).
+I removed all the other unused fields from movie. I also merged ratings into movie, obviously we loose some data (average)
+but we gain in not having to do a join on the movie and rating table for GETs.
+
+### program design 
+I would have like to have used pydantic, but I have not used aiohttp in 5 years to I wanted just to make sure to get 
+the program working.  
+As for the docker image I would normally use alpine to get a small as possible image, but I used bullseye just to ensure
+that I had as many tools on hand in case of debugging need. In production I would look for a slimmer image.
 
 Do not apply indexes before bulk data loading, or else this will slow down the loading. Apply indexes after data loading.
+(I ran out of time to add the indexes, I had planned to add them to a folder sql and apply them after loading the data.)
 
+### miscellaneous: 
 the program should take into account that when creating a movie, that movie/genre are keys on table genre, 
 hence we should remove duplicate genes from the creation of a new movie (many different methods available to do this).
 
