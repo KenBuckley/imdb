@@ -36,7 +36,7 @@ slowest_entries_weights AS (
 	SELECT
 	 date_trunc('day', event_time) AS event_date,
 	 array_agg(DISTINCT tag) FILTER (WHERE tag IS NOT NULL) AS all_tags
-    FROM file_processing_events_1
+    FROM file_processing_events
     LEFT JOIN LATERAL unnest(tags) AS tag on true
     GROUP BY event_date
 ),
